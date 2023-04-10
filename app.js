@@ -5,9 +5,10 @@ const cors = require("cors");
 const userModel = require("./userModel.js");
 const { asyncWrapper } = require("./asyncWrapper.js");
 const bcrypt = require("bcrypt");
-
+const jwt = require("jsonwebtoken");
 const { PokemonDbError } = require("./errors.js");
-
+const mongoose = require("mongoose");
+const ErrorModel = require("./errorModel.js");
 const apiRouter = require("./routers/api.js");
 const authRouter = require("./routers/auth.js");
 
@@ -37,21 +38,31 @@ const start = asyncWrapper(async () => {
 start();
 app.use(express.json());
 app.use(morgan(":method"));
-app.use(cors());
+app.use(
+  cors({
+    exposedHeaders: ["Authorization"],
+  })
+);
 
 app.use("/api", apiRouter);
 app.use("/auth", authRouter);
 
-app.use((err, req, res, next) => {
-  if (err.pokeErrCode) res.status(err.pokeErrCode);
-  else res.status(500);
+app.use(async (err, req, res, next) => {
+  const endpoint = req.originalUrl;
+  const type = req.method;
+  code = err.pokeErrCode;
+  if (!code) code = 500;
+  res.status(code);
+  const endpointEntry = await ErrorModel.create({
+    endpoint,
+    code,
+    type,
+    message: err.message,
+  });
   res.send({
     err: {
       message: err.message,
       type: err.name,
     },
   });
-  console.log("####################");
-  console.log(err);
-  console.log("####################");
 });

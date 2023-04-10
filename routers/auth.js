@@ -37,8 +37,6 @@ router.post(
     const refreshToken = Authorization.split(" ")[1];
     if (!refreshTokens.includes(refreshToken)) {
       // replaced a db access
-      console.log("token: ", refreshToken);
-      console.log("refreshTokens", refreshTokens);
       throw new PokemonAuthError(
         "Invalid Token: Please provide a valid token."
       );
@@ -51,7 +49,7 @@ router.post(
       const accessToken = jwt.sign(
         { user: payload.user },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "10s" }
+        { expiresIn: "1d" }
       );
       const user = await userModel.findOneAndUpdate(
         { username: payload.user.username },
@@ -85,7 +83,7 @@ router.post(
         },
       },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1000s" }
+      { expiresIn: "1d" }
     );
     const refreshToken = jwt.sign(
       {
@@ -98,7 +96,6 @@ router.post(
       process.env.REFRESH_TOKEN_SECRET
     );
     refreshTokens.push(refreshToken);
-    console.log(refreshTokens);
     res.header(
       "Authorization",
       `Bearer ${accessToken},Refresh ${refreshToken}`
@@ -132,7 +129,6 @@ router.get(
     }
     const accessToken = Authorization.split(" ")[1];
     const user = await userModel.findOne({ accessToken: accessToken });
-    console.log(user);
     if (!user) {
       throw new PokemonAuthError("User not found");
     }
