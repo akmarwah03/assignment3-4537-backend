@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "nodemon app"
+    "start": "node app"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
